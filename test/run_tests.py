@@ -4,6 +4,7 @@ import sys
 import trace
 from test_a import *
 from test_b import *
+from pymongo import *
 
 # print __name__
 # print __file__
@@ -64,7 +65,15 @@ from test_b import *
 # track.close()
 
 base = '/Users/zthampi/Projects/track'
-f = open('/Users/zthampi/Projects/track/logs/output.log','w')
+# f = open('/Users/zthampi/Projects/track/logs/output.log','w')
+try:
+    # Create MongoDB client
+    client = MongoClient('localhost', 27017)
+    # Clear data in Collection
+    client['trackDB'].collection['runtime'].posts.drop()
+except:
+    print "ERROR : Mongo DB not running."
+    sys.exit(1)
 
 def get_parent(frame):
     while (frame.f_back and 'test_' not in frame.f_back.f_code.co_name):
@@ -80,7 +89,8 @@ def local_trace(frame,event,arg):
         test = get_parent(frame)
         # Proceed iff the call if part of a test
         if test is not None:
-            f.write(test + " : " + event + " : " + frame.f_code.co_name + " : " + frame.f_code.co_filename + " : " + str(frame.f_lineno) + '\n')
+            # f.write(test + " : " + event + " : " + frame.f_code.co_name + " : " + frame.f_code.co_filename + " : " + str(frame.f_lineno) + '\n')
+            client['trackDB'].collection['runtime'].posts.insert_one({'test': test, 'event': event, 'function': frame.f_code.co_name, 'file': frame.f_code.co_filename, 'line': frame.f_lineno})
 
 def global_trace(frame,event,arg):
     # Proceed iff location is in the base location
@@ -88,12 +98,13 @@ def global_trace(frame,event,arg):
         test = get_parent(frame)
         # Proceed iff the call if part of a test
         if test is not None:
-            f.write(test + " : " + event + " : " + frame.f_code.co_name + " : " + frame.f_code.co_filename + " : " + str(frame.f_lineno) + '\n')
+            # f.write(test + " : " + event + " : " + frame.f_code.co_name + " : " + frame.f_code.co_filename + " : " + str(frame.f_lineno) + '\n')
+            client['trackDB'].collection['runtime'].posts.insert_one({'test': test, 'event': event, 'function': frame.f_code.co_name, 'file': frame.f_code.co_filename, 'line': frame.f_lineno})
     return local_trace
 
 sys.settrace(global_trace)
 test_a()
 test_b()
 
-f.close()
+# f.close()
 sys.settrace(None)
