@@ -1,0 +1,14 @@
+######
+README
+######
+
+1. Parse and Capture data of Source
+python source.py
+
+2. Store coverage of code during runtime
+python test/run_tests.py
+
+3. Analysis
+python analysis.py -a loc_coverage
+python analysis.py -a test_coverage -t test_a
+python analysis.py -a find_tests -f /Users/zthampi/Projects/track/source/b.py -l 4
