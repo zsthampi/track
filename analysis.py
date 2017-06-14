@@ -28,11 +28,17 @@ html_postfix = '</body></html>'
 def output(source,runtime):
     source_coverage = [(each['file'],each['line']) for each in source if each['type']=='code']
     runtime_coverage = [(each['file'],each['line']) for each in runtime]
+
+    # Get Overall Coverage statistics
     diff_coverage = list(set(source_coverage) - set(runtime_coverage))
-    # print diff_coverage
+    try:
+        overall_coverage = (1.0 - (float(len(diff_coverage))/float(len(source_coverage))))*100
+    except:
+        overall_coverage = 0
 
     f = open('./output/track.html','w')
     f.write(html_prefix)
+    f.write('<p>Overall Coverage : {}</p>'.format(overall_coverage))
 
     current_file = None
     for each in source:
@@ -40,8 +46,12 @@ def output(source,runtime):
             f.write('</table>')
         if current_file is None or each['file']<>current_file:
             current_file = each['file']
+            # Get coverage statistics for each file
+            file_source_coverage = [(peach['file'],peach['line']) for peach in source if peach['file']==current_file and peach['type']=='code']
+            file_diff_coverage = list(set(file_source_coverage) - set(runtime_coverage))
+            coverage = (1.0 - (float(len(file_diff_coverage))/float(len(file_source_coverage))))*100
             f.write('<table id="{}" cellspacing="0">'.format(current_file))
-            f.write('<caption>{}</caption>'.format(current_file))
+            f.write('<caption><pre>{} (Coverage : {})</pre></caption>'.format(current_file,coverage))
 
         if each['type'] == 'blank':
             color = "white"
